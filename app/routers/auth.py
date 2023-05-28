@@ -39,6 +39,13 @@ async def register(user: schemas.UserRegister):
                 "course": user.course,
                 "is_mentor": user.is_mentor
             })
+        # create group if mentor
+        if user.is_mentor:
+            grp_ref = firestore_client.collection("groups")
+            grp_ref.document(user.email[:8]).set({
+                "gid": user.email[:8],
+                "mentees": []
+            })
         return JSONResponse(content={'message': f'Successfully created user {new_user.uid}'}, status_code=200)    
     except Exception as e:
         print(e)
