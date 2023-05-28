@@ -1,7 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-import passlib
-from passlib.hash import pbkdf2_sha256
 
 from app import schemas
 from app.routers import auth
