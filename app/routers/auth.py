@@ -6,8 +6,6 @@ import firebase_admin
 import pyrebase
 import json
 from firebase_admin import credentials, auth, firestore
-from typing import Annotated
-import re
 
 from app import schemas
 

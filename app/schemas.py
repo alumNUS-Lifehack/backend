@@ -13,3 +13,12 @@ class UserRegister(BaseModel):
     gradyear: int
     course: str
     is_mentor: bool
+
+class User(BaseModel):
+    uid: str
+    name: str
+    linkedin: str
+    headline: str
+    gradyear: int
+    course: str
+    is_mentor: bool
