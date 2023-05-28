@@ -4,6 +4,7 @@ import passlib
 from passlib.hash import pbkdf2_sha256
 
 from app import schemas
+from app.routers import auth
 
 app: FastAPI = FastAPI()
 
@@ -19,19 +20,4 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-db = None
-save = None
-
-@app.post("/login")
-async def login(user: schemas.UserLogin):
-    hashed = pbkdf2_sha256.hash(user.password)
-    status = pbkdf2_sha256.verify(user.password, save)
-    return {"username": user.username, "status": status }
-
-@app.post("/register")
-async def register(user: schemas.UserLogin):
-    hashed = pbkdf2_sha256.hash(user.password)
-    global save
-    save = hashed
-    status = pbkdf2_sha256.verify(user.password, save)
-    return {"username": user.username, "status": status}
+app.include_router(auth.router)
