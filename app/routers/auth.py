@@ -20,15 +20,37 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-@router.post("/register", include_in_schema=False)
+@router.post("/register")
 async def register(user: schemas.UserRegister):
+    '''
+    Description
+    ===========
+        Registers a new user.
+        If a user is a mentor, a group is created for them.
+    
+    Parameters
+    ==========
+        email:     NUSNet email address
+        name:      Full name (in titlecase)
+        linkedin:  LinkedIn profile URL
+        headline:  Job title/School/Course/Tech Stack etc.
+        gradyear:  Graduation year
+        course:    Course of study
+        is_mentor: True if user is a mentor, False if user is a mentee
+
+    Returns
+    =======
+        Success message if user is registered successfully; error message otherwise.
+    '''
     if user.email is None or user.password is None:
         raise HTTPException(status_code=400, detail="Email and password are required")
     try:
+        auth_done, usr_ref_done, grp_ref_done = False, False, False
         new_user = auth.create_user(
            email=user.email,
            password=user.password
         )
+        auth_done = True
         usr_ref = firestore_client.collection("users")
         usr_ref.document(user.email[:8]).set({
                 "uid": user.email[:8],
@@ -39,6 +61,7 @@ async def register(user: schemas.UserRegister):
                 "course": user.course,
                 "is_mentor": user.is_mentor
             })
+        usr_ref_done = True
         # create group if mentor
         if user.is_mentor:
             grp_ref = firestore_client.collection("groups")
@@ -46,13 +69,40 @@ async def register(user: schemas.UserRegister):
                 "gid": user.email[:8],
                 "mentees": []
             })
+            grp_ref_done = True
+            # create chat with welcome message for mentees
+            chat_ref = grp_ref.document(user.email[:8]).collection("messages")
+            first_message: schemas.Message = {
+                "createdAt": firestore.SERVER_TIMESTAMP,
+                "sentBy": user.email[:8],
+                "text": f"Welcome to your chat with {user.name}! Feel free to introduce yourself and ask any questions you have about {user.course} or general career advice."
+            }
+            chat_ref.add(first_message)
         return JSONResponse(content={'message': f'Successfully created user {new_user.uid}'}, status_code=200)    
     except Exception as e:
         print(e)
+        # guard against partial creation
+        if auth_done: auth.delete_user(user.email[:8])
+        if usr_ref_done: usr_ref.document(user.email[:8]).delete()
+        if grp_ref_done: grp_ref.document(user.email[:8]).delete()
         return HTTPException(detail={'message': 'Error Creating User'}, status_code=400)
 
-@router.post("/login", include_in_schema=False)
+@router.post("/login")
 async def login(user: schemas.UserLogin):
+    '''
+    Description
+    ===========
+        Logs a user in.
+
+    Parameters
+    ==========
+        email:     NUSNet email address
+        password:  Password
+
+    Returns
+    =======
+        JWT token if user is logged in successfully; error message otherwise.
+    '''
     try:
         logged_in_user = pb.auth().sign_in_with_email_and_password(user.email, user.password)
         jwt = logged_in_user['idToken']
@@ -61,8 +111,21 @@ async def login(user: schemas.UserLogin):
         print(e)
         return HTTPException(detail={'message': 'There was an error logging in'}, status_code=400)
 
-@router.post("/ping", include_in_schema=False)
+@router.post("/ping")
 async def validate(request: Request):
+    '''
+    Description
+    ===========
+        Validates a JWT token.
+
+    Parameters
+    ==========
+        Authorization header: JWT token
+
+    Returns
+    =======
+        User ID if token is valid; error message otherwise.
+    '''
     try:
         headers = request.headers
         jwt = headers.get('authorization')
