@@ -22,6 +22,19 @@ router = APIRouter(
 
 @router.get("/mentor/{uid}")
 async def get_mentor(uid: str, request: Request):
+    '''
+    Description
+    ===========
+        Gets a mentor's profile.
+
+    Parameters
+    ==========
+        uid: NUSNet ID of mentor
+
+    Returns
+    =======
+        Mentor's profile if mentor exists; error message otherwise.
+    '''
     try:
         headers = request.headers
         token = headers['authorization']
@@ -42,6 +55,19 @@ async def get_mentor(uid: str, request: Request):
 
 @router.get("/mentee/{uid}")
 async def get_mentee(uid: str, request: Request):
+    '''
+    Description
+    ===========
+        Gets a mentee's profile.
+
+    Parameters
+    ==========
+        uid: NUSNet ID of mentee
+
+    Returns
+    =======
+        Mentee's profile if mentee exists; error message otherwise.
+    '''
     try:
         headers = request.headers
         token = headers['authorization']
@@ -62,6 +88,19 @@ async def get_mentee(uid: str, request: Request):
 
 @router.get("/all_mentors")
 async def get_all_mentors(request: Request):
+    '''
+    Description
+    ===========
+        Gets all mentors' profiles.
+
+    Parameters
+    ==========
+        Authorization header: JWT token
+
+    Returns
+    =======
+        All mentors' profiles if mentors exist; error message otherwise.
+    '''
     try:
         headers = request.headers
         token = headers['authorization']

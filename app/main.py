@@ -4,7 +4,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from app import schemas
 from app.routers import auth, users
 
-app: FastAPI = FastAPI()
+description = """
+AlumNUS is a platform for NUS students to connect with and receive mentorship from NUS alumni.
+This API is used to authenticate users and retrieve user data.
+"""
+
+app: FastAPI = FastAPI(
+    title="AlumNUS API",
+    description=description,
+    version="0.1.0"
+)
 
 origins = [
     "*"
