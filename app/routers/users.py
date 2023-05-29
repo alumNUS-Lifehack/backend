@@ -36,6 +36,9 @@ async def get_mentor(uid: str, request: Request):
         Mentor's profile if mentor exists; error message otherwise.
     '''
     try:
+        headers = request.headers
+        token = headers['authorization']
+        decoded_token = auth.verify_id_token(token)
         usr_ref = firestore_client.collection("users")
         usr = usr_ref.document(uid).get()
         if usr.exists:
@@ -66,6 +69,9 @@ async def get_mentee(uid: str, request: Request):
         Mentee's profile if mentee exists; error message otherwise.
     '''
     try:
+        headers = request.headers
+        token = headers['authorization']
+        decoded_token = auth.verify_id_token(token)
         usr_ref = firestore_client.collection("users")
         usr = usr_ref.document(uid).get()
         if usr.exists:
@@ -96,6 +102,9 @@ async def get_all_mentors(request: Request):
         All mentors' profiles if mentors exist; error message otherwise.
     '''
     try:
+        headers = request.headers
+        token = headers['authorization']
+        decoded_token = auth.verify_id_token(token)
         usr_ref = firestore_client.collection("users")
         all_users = usr_ref.stream()
         mentors = []
@@ -124,6 +133,9 @@ async def assign_mentor(mentee_uid: str, mentor_uid: str, request: Request):
         Success message if mentor assigned successfully; error message otherwise.
     '''
     try:
+        headers = request.headers
+        token = headers['authorization']
+        decoded_token = auth.verify_id_token(token)
         usr_ref = firestore_client.collection("users")
         mentee = usr_ref.document(mentee_uid).get()
         mentor = usr_ref.document(mentor_uid).get()
@@ -156,6 +168,9 @@ async def get_mentees(mentor_uid: str, request: Request):
         All mentees' profiles if mentor exists; error message otherwise.
     '''
     try:
+        headers = request.headers
+        token = headers['authorization']
+        decoded_token = auth.verify_id_token(token)
         usr_ref = firestore_client.collection("users")
         mentor = usr_ref.document(mentor_uid).get()
         if mentor.exists:
