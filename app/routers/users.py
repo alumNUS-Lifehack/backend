@@ -115,3 +115,73 @@ async def get_all_mentors(request: Request):
     except Exception as e:
         print(e)
         return HTTPException(detail={'message': 'Error getting mentors'}, status_code=400)
+
+@router.post("/assign_mentor/{mentee_uid}/{mentor_uid}")
+async def assign_mentor(mentee_uid: str, mentor_uid: str, request: Request):
+    '''
+    Description
+    ===========
+        Assigns a mentor to a mentee.
+
+    Parameters
+    ==========
+        mentee_uid: NUSNet ID of mentee
+        mentor_uid: NUSNet ID of mentor
+
+    Returns
+    =======
+        Success message if mentor assigned successfully; error message otherwise.
+    '''
+    try:
+        headers = request.headers
+        token = headers['authorization']
+        decoded_token = auth.verify_id_token(token)
+        usr_ref = firestore_client.collection("users")
+        mentee = usr_ref.document(mentee_uid).get()
+        mentor = usr_ref.document(mentor_uid).get()
+        if mentee.exists and mentor.exists:
+            if not mentee.to_dict()['is_mentor'] and mentor.to_dict()['is_mentor']:
+                mentee_ref = usr_ref.document(mentee_uid)
+                mentee_ref.update({'assigned_mentor': mentor_uid})
+                return JSONResponse(content={'message': 'Mentor assigned successfully'}, status_code=200)
+            else:
+                return HTTPException(detail={'message': 'One or both users are not mentors'}, status_code=400)
+        else:
+            return HTTPException(detail={'message': 'One or both users do not exist'}, status_code=400)
+    except Exception as e:
+        print(e)
+        return HTTPException(detail={'message': 'Error assigning mentor'}, status_code=400)
+
+@router.post("/get_mentees/{mentor_uid}")
+async def get_mentees(mentor_uid: str, request: Request):
+    '''
+    Description
+    ===========
+        Gets all mentees assigned to a mentor.
+
+    Parameters
+    ==========
+        mentor_uid: NUSNet ID of mentor
+
+    Returns
+    =======
+        All mentees' profiles if mentor exists; error message otherwise.
+    '''
+    try:
+        headers = request.headers
+        token = headers['authorization']
+        decoded_token = auth.verify_id_token(token)
+        usr_ref = firestore_client.collection("users")
+        mentor = usr_ref.document(mentor_uid).get()
+        if mentor.exists:
+            if mentor.to_dict()['is_mentor']:
+                grp_ref = firestore_client.collection("groups")
+                mentees = grp_ref.document(mentor_uid).get().to_dict()['mentees']
+                return JSONResponse(content=mentees, status_code=200)
+            else:
+                return HTTPException(detail={'message': 'User is not a mentor'}, status_code=400)
+        else:
+            return HTTPException(detail={'message': 'User does not exist'}, status_code=400)
+    except Exception as e:
+        print(e)
+        return HTTPException(detail={'message': 'Error getting mentees'}, status_code=400)

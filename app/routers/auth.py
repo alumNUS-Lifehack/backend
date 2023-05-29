@@ -59,7 +59,8 @@ async def register(user: schemas.UserRegister):
                 "headline": user.headline,
                 "gradyear": user.gradyear,
                 "course": user.course,
-                "is_mentor": user.is_mentor
+                "is_mentor": user.is_mentor,
+                "assigned_mentor": ""
             })
         usr_ref_done = True
         # create group if mentor
