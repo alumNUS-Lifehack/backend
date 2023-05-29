@@ -106,7 +106,8 @@ async def login(user: schemas.UserLogin):
     try:
         logged_in_user = pb.auth().sign_in_with_email_and_password(user.email, user.password)
         jwt = logged_in_user['idToken']
-        return JSONResponse(content={'token': jwt}, status_code=200)
+        user = firestore_client.collection("users").document(user.email[:8]).get().to_dict()
+        return JSONResponse(content={'token': jwt, 'user': user}, status_code=200)
     except Exception as e:
         print(e)
         return HTTPException(detail={'message': 'There was an error logging in'}, status_code=400)
